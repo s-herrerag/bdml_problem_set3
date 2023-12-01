@@ -1,0 +1,109 @@
+Ninguna variable está en train_hogares
+
+¿Qué hacer con NA's de hogares? ¿Cómo imputar?
+
+¿Corroborar información? Es decir, que los NA's o 0's de las variables numéricas se correspondan con NA's o 0's de las variables dummies que las anteceden?
+
+Unidades de medida de tiempo. Algunas preguntas (P550) piden información de últimos doce meses, y otras (la mayoría), de sólo el mes pasado.
+
+Variables similares, como bonificaciones anuales, o las últimas dos que me tocaron.
+
+EspecieAlimentos “P6590s1” (426983)	Además del salario en dinero, ¿el mes
+pasado recibió alimentos como parte de
+pago por su trabajo? 1 si a. ¿en cuánto
+estima lo que recibió? $_______________
+
+EspecieVivienda “P6600s1” (426983)	Además del salario en dinero, ¿el mes
+pasado recibió vivienda como parte de
+pago por su trabajo? 1 si a. ¿en cuánto
+estima lo que recibió? $_______________
+
+EspecieTransporte “P6610s1” (426983)	¿Normalmente... Utiliza transporte de la
+empresa para desplazarse a su trabajo
+(bus o automóvil)? 1 si a. ¿en cuánto
+estima lo que recibió? $_______________
+
+EspecieOtros “P6620s1” (426983)	Además del salario en dinero, ¿el mes
+pasado... Recibió otros ingresos en especie
+por su trabajo(electrodomésticos, ropa,
+productos diferentes a alimentos o bonos
+tipo sodexho)? 1 si a. ¿en cuánto estima lo
+que recibió? $_______________
+
+IngPrimaServ “P6630s1a1” (426983)	En los últimos 12 meses recibió: - a. Prima
+de servicios? a. ¿cuánto recibió?
+$___________
+
+IngPrimaNav “P6630s2a1” (426983)	En los últimos 12 meses recibió: - b. Prima
+de navidad? a. ¿cuánto recibió?
+$___________
+
+IngPrimaVac “P6630s3a1” (426983)	En los últimos 12 meses recibió: - c. Prima
+de vacaciones? a. ¿cuánto recibió?
+$___________
+
+ViatPermBonifAnuales “P6630s4a1” (426983)	En los últimos 12 meses recibió:- d.
+Viáticos permanentes y/o bonificaciones
+anuales? a. ¿cuánto recibió? $___________
+
+BonifAnuales “P6630s6a1” (426983)	En los últimos 12 meses recibió: - e.
+Bonificaciones anuales a. ¿cuánto recibió?
+$___________
+
+Honorarios “P6750" (420083)		¿cuál fue la ganancia neta o los honorarios
+netos de ... En esa actividad, negocio,
+profesión o finca, el mes pasado ?
+honorarios o ganancia neta en el mes
+pasado valor $_______________________
+
+MesesHonorarios “P6760”	(419515)	¿a cuántos meses corresponde lo que
+recibió?
+
+GananCosechAnual “P550"	(528656)	¿cuál fue la ganancia neta del negocio o de
+la cosecha durante los últimos doce meses?
+honorarios o ganancia neta en los últimos
+doce meses valor $_______________________
+
+HorasSemTrabaj “P6800”	(295034)	¿cuántas horas a la semana trabaja
+normalmente.... en ese trabajo ? horas ____
+
+TamañoEmpresa “P6870"	(295034)	¿cuántas personas en total tiene la
+empresa, negocio, industria, oficina, firma,
+finca o sitio donde ..... Trabaja? a. Trabaja
+solo b. 2 a 3 personas c. 4 a 5 personas d.
+6 a 10 personas e. 11 a 19 personas f. 20 a
+30 personas g. 31 a 50 personas h. 51 a
+100 personas i. 101 o más personas
+
+CotizPension “P6920”	(296058)	¿Está... Cotizando actualmente a un fondo
+de pensiones? 1 sí 2 no 3 ya es pensionado
+
+SegundoTrabajo “P7040"	(295034)	Además de la ocupación principal, ¿....
+tenía la semana pasada otro trabajo o
+negocio? 1 sí 2 no
+
+SegundoTrabajoHoras “P7045”	(530864)	¿cuántas horas trabajó ... La semana
+pasada en ese segundo trabajo?
+
+SegundoTrabajoIngMens “P7070”	(296565)	¿cuánto recibió o ganó ….. el mes pasado
+en ese segundo trabajo o negocio? valor
+mes pasado $_______________________
+
+PrimerTrabajo “P7310”	(513037)	¿...... ha buscado trabajo por primera vez o
+había trabajado antes por lo menos
+durante dos semanas consecutivas? 1
+primera vez 2 trabajó antes
+
+Ocupado “P7422”	(516467)	¿recibió o ganó el mes pasado ingresos por
+concepto de trabajo? 1 sí 2 no
+
+IngLab “P7422s1" (516467)	¿recibió o ganó el mes pasado ingresos por
+concepto de trabajo? a. ¿cuánto? $
+______________
+
+Ocupado? “P7472”	(373597)	¿recibió o ganó el mes pasado ingresos por
+concepto de trabajo? 1 sí 2 no
+
+Inglab? “P7472s1" (373597)	¿recibió o ganó el mes pasado ingresos por
+concepto de trabajo? a. ¿cuánto?
+$___________
