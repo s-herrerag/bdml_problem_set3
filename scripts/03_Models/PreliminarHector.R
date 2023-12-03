@@ -366,4 +366,101 @@ rf_predictions <- predict(class_ranger_ROC, test_final, type = "prob")$si %>%
 write_csv(rf_predictions, "classification_rf.csv")
 
 
+# Árboles tidymodels, regresión -------------------------------------------
+
+train_reg <- train_final_sin_bog %>%
+  select(-c(Depto, train, Clase, Pobre))
+
+set.seed(123)
+
+validation_set_reg <- train_final_sin_bog %>% 
+  sample_frac(0.15)
+
+validation_train_reg <- train_class %>% 
+  anti_join(validation_set, by = "id") %>%
+  select(-id) 
+
+set.seed(123)
+
+#Model
+random_forest_reg <- rand_forest(
+  mtry = tune(),
+  min_n = tune(),
+  trees = tune(),
+) %>%
+  set_engine("ranger") %>%
+  set_mode("regression")
+
+random_forest_grid_reg <- grid_random(mtry(range = c(35, 50)),
+                                  min_n(),
+                                  trees(range = c(250, 500)))
+                                  
+#Receta, con todas las variables
+
+rec_forests_reg <-
+  recipe( ~ ., data = validation_train_reg, -geometry) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_interact(terms = ~ P5130:starts_with("Dominio")) %>%
+  step_interact(terms = ~ Educ_avg:starts_with("Dominio")) %>%
+  step_interact(terms = ~ tasa_ocupados:starts_with("Dominio")) %>%
+  step_interact(terms = ~ tasa_inactivos:starts_with("Dominio")) %>%
+  step_interact(terms = ~ P5000:starts_with("Dominio")) %>%
+  step_interact(terms = ~ edad_pet:starts_with("Dominio")) %>%
+  step_pca(all_numeric_predictors(), threshold = 0.75) %>%
+  step_normalize(all_numeric_predictors(), -all_outcomes()) %>% 
+  step_zv(all_predictors())
+
+#Workflow
+
+workflow_random_forest_reg <- workflow() %>%
+  add_recipe(rec_forests_reg) %>%
+  add_model(random_forest_reg)
+
+kfolds_reg <- vfold_cv(validation_train_reg, v = 5)
+
+#Tune grid
+registerDoParallel()
+tune_random_forest <- workflow_random_forest %>% 
+  tune_grid(resamples = kfolds,
+            grid = random_forest_grid,
+            metrics = metric_set(f_meas),
+            control=control_grid(verbose=TRUE))
+stopImplicitCluster()
+
+metrics_rf <- tune_random_forest %>%
+  collect_metrics()
+
+#Best Fit, Training and K-validation
+best_random_forest <- select_best(tune_random_forest, metric = "f_meas")
+
+#Predict
+random_forest_final <- finalize_workflow(workflow_random_forest, best_random_forest)
+random_forest_final_fit <- fit(random_forest_final, data = validation_train) #Para ROC 
+
+predictions_real_df_rforest <- predict(random_forest_final_fit, validation_set) %>%
+  bind_cols(validation_set$Pobre)
+
+roc_thresh_rforest <- ROC_function(predictions_real_df_rforest)
+
+
+# Predicción con test tras ROC  -------------------------------------------
+
+lda_predictions <- predict(lda_fit, test, type = "prob")$.pred_si %>%
+  bind_cols(test$id) %>%
+  rename(c("id"="...2")) %>%
+  mutate(pobre = ifelse(...1>=roc_thresh_lda$threshold, 1, 0)) %>%
+  select(-c(...1)) %>%
+  replace_na(list(pobre = 0))
+
+## Exportar
+
+write_csv(random_forest_predictions, "submissions/RandomForest.csv")
+
+#Predict en validation
+predictions_real_df_lda <- predict(lda_fit, validation_set, type = "prob")$.pred_si %>%
+  bind_cols(validation_set$Pobre) %>%
+  rename(c("real" = "...2", "predictions"="...1"))
+
+
+
 
