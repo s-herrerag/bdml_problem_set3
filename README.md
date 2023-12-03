@@ -1,3 +1,30 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:5bb1fba725a11f2a7a4aa8c8f6a3ab1074abb95ea26f4bc431cdccbd835fc198
-size 20
+# Big Data y Machine Learning: Problem Set 3
+
+En este repositorio se encuentran múltiples modelos para predecir los precios de inmuebles en Bogotá, Colombia. El repositorio fue construido conjuntamente por Catalina Durán (@catalinad18), José González (@JoseDGonzalezR), Héctor Segura (@HectorSegura) y Santiago Herrera (@s-herrerag). 
+
+## Descripción de archivos
+
+### scripts
+
+- Se encuentran scripts para la limpieza y creación de variables.
+- También están los scripts para cada modelo.
+
+
+### stores
+
+En _stores_ se encuentran las bases de datos utilizadas en el ejercicio. 
+
+-Está un documento con el link a la carpeta de OneDrive con las bases utilizadas
+
+### submissions
+
+Son las predicciones de cada modelo utilizado.
+
+### document
+
+Archivo .pdf con el documento final del problem set. 
+
+### views
+
+Tablas y gráficas empleadas en el documento final.
+
