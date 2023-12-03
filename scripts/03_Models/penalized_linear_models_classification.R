@@ -102,6 +102,8 @@ coefs_lasso <- best_lasso_fit %>%
   extract_fit_parsnip() %>%
   tidy()
 
+write_csv(coefs_lasso, "../stores/01_var_exploration/coefs_lasso.csv")
+
 # Curva ROC para escoger punto de corte
 source("03_Models/ROC_function.R")
 
