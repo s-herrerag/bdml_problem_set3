@@ -18,7 +18,22 @@ p_load(
 )
 
 require(pacman)
-p_load("tidymodels", "glmnet", "doParallel", "pROC", "brulee", "discrim", "sparsediscrim", "ranger", "caret", "Metrics")
+p_load(tidymodels, 
+       caret, 
+       rpart, 
+       modeldata, 
+       spatialsample,
+       tidyverse,
+       rio,
+       leaflet,
+       randomForest,
+       rattle, 
+       spatialsample, 
+       doParallel, 
+       ranger, 
+       xgboost, 
+       lightgbm, 
+       bonsai)
 
 rm(list = ls())
 setwd("/Users/hectorsegura/Documentos/Big Data & ML/Taller 3 ")
@@ -209,7 +224,7 @@ write_csv(BaseHector_test, file = "BaseHector_test.csv")
 train_final <- readRDS("train_final.rds")
 test_final <- readRDS("test_final.rds") %>% 
   replace_na(list(edad_pet=0, tasa_ocupados=0, tasa_inactivos=0))
-train_final_sin_bog <- readRDS("train_final_sin_bog.rds")
+train_sin_bog <- readRDS("train_final_sin_bog.rds")
 
 train_class <- train_final_sin_bog %>%
   select(-c(Lp, Ingpcug, lIngpcug, Depto, train, Clase))
@@ -368,70 +383,65 @@ write_csv(rf_predictions, "classification_rf.csv")
 
 # Árboles tidymodels, regresión -------------------------------------------
 
-train_reg <- train_final_sin_bog %>%
-  select(-c(Depto, train, Clase, Pobre))
+train_reg <- train_sin_bog %>%
+  select(-c(Lp, Ingpcug, Pobre, id, train, Clase))
 
+# Folds -------------------------------------------------------------------
 set.seed(123)
-
-validation_set_reg <- train_final_sin_bog %>% 
-  sample_frac(0.15)
-
-validation_train_reg <- train_class %>% 
-  anti_join(validation_set, by = "id") %>%
-  select(-id) 
-
-set.seed(123)
+kfolds <- vfold_cv(train_final, v = 5)
 
 #Model
-random_forest_reg <- rand_forest(
-  mtry = tune(),
-  min_n = tune(),
+rf_reg<- rand_forest(
+  mtry = tune(),              # Hiperparámetro: Número de variables a considerar en cada división
+  min_n = tune(),             # Hiperparámetro: Profundidad mínima del árbol
   trees = tune(),
 ) %>%
-  set_engine("ranger") %>%
-  set_mode("regression")
+  set_engine("randomForest") %>%
+  set_mode("regression")       # Cambiar a modo de regresión
 
-random_forest_grid_reg <- grid_random(mtry(range = c(35, 50)),
+random_forest_grid_reg <- grid_regular(mtry(range = c(35, 50)),
                                   min_n(),
-                                  trees(range = c(250, 500)))
+                                  trees(range = c(500, 1000)),
+                                  levels = c(5,5,2))
                                   
 #Receta, con todas las variables
 
 rec_forests_reg <-
-  recipe( ~ ., data = validation_train_reg, -geometry) %>% 
-  step_dummy(all_nominal_predictors()) %>% 
-  step_interact(terms = ~ P5130:starts_with("Dominio")) %>%
-  step_interact(terms = ~ Educ_avg:starts_with("Dominio")) %>%
-  step_interact(terms = ~ tasa_ocupados:starts_with("Dominio")) %>%
-  step_interact(terms = ~ tasa_inactivos:starts_with("Dominio")) %>%
-  step_interact(terms = ~ P5000:starts_with("Dominio")) %>%
-  step_interact(terms = ~ edad_pet:starts_with("Dominio")) %>%
-  step_pca(all_numeric_predictors(), threshold = 0.75) %>%
-  step_normalize(all_numeric_predictors(), -all_outcomes()) %>% 
-  step_zv(all_predictors())
+  recipe(lIngpcug ~ ., data = train_reg) %>% 
+  step_dummy(all_of(c("Dominio")), -all_outcomes()) %>% 
+  #step_interact(terms = ~ P5130:starts_with("Depto")) %>%
+  #step_interact(terms = ~ Educ_avg:starts_with("Depto")) %>%
+  #step_interact(terms = ~ tasa_ocupados:starts_with("Depto")) %>%
+  #step_interact(terms = ~ tasa_inactivos:starts_with("Depto")) %>%
+  #step_interact(terms = ~ P5000:starts_with("Depto")) %>%
+  #step_interact(terms = ~ edad_pet:starts_with("Depto")) %>%
+  step_zv(all_predictors()) %>%
+  step_normalize(all_numeric_predictors(), -all_outcomes()) %>%
+  step_pca(all_numeric_predictors(), threshold = 0.8)
 
 #Workflow
 
 workflow_random_forest_reg <- workflow() %>%
   add_recipe(rec_forests_reg) %>%
-  add_model(random_forest_reg)
-
-kfolds_reg <- vfold_cv(validation_train_reg, v = 5)
+  add_model(rf_reg)
 
 #Tune grid
 registerDoParallel()
-tune_random_forest <- workflow_random_forest %>% 
-  tune_grid(resamples = kfolds,
-            grid = random_forest_grid,
-            metrics = metric_set(f_meas),
-            control=control_grid(verbose=TRUE))
+
+tune_rf_reg <- tune_grid(
+  workflow_random_forest_reg, 
+  resamples = kfolds,
+  grid = random_forest_grid_reg,
+  metrics = metric_set(mae),
+  control=control_grid(verbose=TRUE))
+
 stopImplicitCluster()
 
-metrics_rf <- tune_random_forest %>%
+metrics_rf_reg <- tune_random_forest_reg %>%
   collect_metrics()
 
 #Best Fit, Training and K-validation
-best_random_forest <- select_best(tune_random_forest, metric = "f_meas")
+best_random_forest_reg <- select_best(tune_random_forest_reg, metric = "rmse")
 
 #Predict
 random_forest_final <- finalize_workflow(workflow_random_forest, best_random_forest)
@@ -441,7 +451,6 @@ predictions_real_df_rforest <- predict(random_forest_final_fit, validation_set) 
   bind_cols(validation_set$Pobre)
 
 roc_thresh_rforest <- ROC_function(predictions_real_df_rforest)
-
 
 # Predicción con test tras ROC  -------------------------------------------
 
@@ -460,7 +469,3 @@ write_csv(random_forest_predictions, "submissions/RandomForest.csv")
 predictions_real_df_lda <- predict(lda_fit, validation_set, type = "prob")$.pred_si %>%
   bind_cols(validation_set$Pobre) %>%
   rename(c("real" = "...2", "predictions"="...1"))
-
-
-
-
