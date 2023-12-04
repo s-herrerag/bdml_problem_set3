@@ -340,7 +340,6 @@ ctrl<- trainControl(method = "cv",
                     number = 5,
                     summaryFunction = twoClassSummary,
                     classProbs = TRUE,
-                    search = "random",
                     savePredictions = T)
 
 set.seed(123)
@@ -354,10 +353,56 @@ class_ranger_ROC <- train(
   tuneGrid=expand.grid(
     mtry = c(10, 25, 35),
     splitrule = "gini",
-    min.node.size = c(150, 200, 250, 300)
-    ),
+    min.node.size = c(150, 200, 250, 300)),
   verbose = TRUE 
 )
+
+#No metí la importancia en el anterior, entonces lo volveré a correr con los valores de la grilla que me arrojó por "mejores" 
+
+registerDoParallel()
+class_ranger_ROC_importance <- train(
+  Pobre ~ .,
+  data=validation_train,
+  metric = "ROC",
+  method = "ranger",
+  trControl = ctrl,
+  importance = "impurity",
+  tuneGrid=expand.grid(
+    mtry = 35,
+    splitrule = "gini",
+    min.node.size = 150),
+  verbose = TRUE 
+)
+stopImplicitCluster()
+
+
+# Importancia  ------------------------------------------------------------
+
+print(varImp(class_ranger_ROC_importance))
+
+importance_vars <- class_ranger_ROC_importance$finalModel$variable.importance %>% 
+  sort(decreasing = TRUE) 
+
+top20 <- head(importance_vars, 20)
+
+top_20 <- data.frame(
+  Importance = unlist(top20)) %>% 
+  rownames_to_column(var = "Variable") %>% 
+  replace(list(pensionados = "Pensionados", P5130 = "Estimación arriendo", prop_pet = "Proporción PET"))
+
+write_csv(top_20, "Importance_rf.csv")
+
+ggplot(top_20, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  coord_flip() +
+  labs(x = "Variable", y = "Importancia", title = "Importancia de las variables más importantes") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 15))
+
+
+
+# Predicciones  -----------------------------------------------------------
 
 predictions_rf <- as.data.frame(predict(class_ranger_ROC, newdata = validation_set, type = "prob")$si)
 
