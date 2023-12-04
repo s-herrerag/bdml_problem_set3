@@ -33,7 +33,8 @@ p_load(tidymodels,
        ranger, 
        xgboost, 
        lightgbm, 
-       bonsai)
+       bonsai, 
+       ggthemes)
 
 rm(list = ls())
 setwd("/Users/hectorsegura/Documentos/Big Data & ML/Taller 3 ")
@@ -385,22 +386,31 @@ importance_vars <- class_ranger_ROC_importance$finalModel$variable.importance %>
 
 top20 <- head(importance_vars, 20)
 
+reemplazos <- data.frame(
+  ValorAntiguo = c("pensionados", "P5130", "prop_pet", "Npersug", "Educ_avg", "tasa_ocupados", "tamano_empresa", "pensiones", "horas_trabajadas", "prima_servicios", "edad_pet", "P5140", "tasa_inactivos", "P50905", "remesas_internas", "ayuda_instituciones", "P5000", "Educ_jefe", "ingresos_trabajo", "DominioRURAL"),
+  NuevoValor = c("Pensionados", "Estimación arriendo", "Propor. PET", "Npersug", "Educ_avg", "Tasa ocupados", "Tamaño empresa", "Pensiones", "Horas trabajadas", "Prima_servicios", "Edad_PET", "Valor arriendo", "Tasa inactivos", "Vivienda_es", "Remesas_internas", "Aux_instituciones", "Número cuartos", "Educ_jefe", "Ingresos_trabajo", "Dominio:RURAL")
+)
+
 top_20 <- data.frame(
   Importance = unlist(top20)) %>% 
   rownames_to_column(var = "Variable") %>% 
-  replace(list(pensionados = "Pensionados", P5130 = "Estimación arriendo", prop_pet = "Proporción PET"))
+  mutate(Variable = case_when(
+    Variable %in% reemplazos$ValorAntiguo ~ reemplazos$NuevoValor,
+    TRUE ~ Variable))
 
 write_csv(top_20, "Importance_rf.csv")
 
-ggplot(top_20, aes(x = reorder(Variable, Importance), y = Importance)) +
-  geom_bar(stat = "identity", fill = "skyblue") +
+
+varImp <- ggplot(top_20, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_bar(stat = "identity") +
   coord_flip() +
-  labs(x = "Variable", y = "Importancia", title = "Importancia de las variables más importantes") +
-  theme_minimal() +
-  theme(axis.text.y = element_text(size = 8)) +
+  labs(x = "Variable", y = "Importancia") +
+  theme_classic() +
+  theme(axis.text.y = element_text(size = 9),
+        plot.title = element_text(hjust = 0.5)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 15))
 
-
+ggsave("varImp.jpeg", plot = varImp, dpi = 300)
 
 # Predicciones  -----------------------------------------------------------
 
