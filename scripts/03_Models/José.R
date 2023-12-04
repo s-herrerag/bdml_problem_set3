@@ -6,12 +6,14 @@ p_load("tidyverse",
        "doParallel",
        "tidymodels",
        "yardstick",
-       "rpart")
+       "rpart",
+       "stargazer",
+       "ggplot2")
 
 
 # Directorio --------------------------------------------------------------
 
-file_dir <- this.path::here()
+file_dir <- "C:/Users/PC/Documents/GitHub/bdml_problem_set_3_0/scripts"
 setwd(file_dir)
 
 # Cargamos datos ----------------------------------------------------------
@@ -314,6 +316,69 @@ write_csv(test_final1, "modelo1_arbol.csv")
 train <- readRDS("../stores/train_final.rds")
 train_sin_bog <- readRDS("../stores/train_final_sin_bog.rds")
 test <- readRDS("../stores/test_final.rds")
+
+#Base de datos para estadísticas descriptivas
+
+train_sin_bog_1 <- train_sin_bog %>%
+  mutate(DominioRURAL = ifelse(Dominio == "RURAL", 1, 0))
+
+train_sin_bog_descriptivas <- as.data.frame(subset(train_sin_bog_1, select = c(pensionados, 
+                                                                               P5130, 
+                                                                               prop_pet, 
+                                                                               Npersug, 
+                                                                               Educ_avg, 
+                                                                               tasa_ocupados, 
+                                                                               tamano_empresa, 
+                                                                               pensiones, 
+                                                                               horas_trabajadas, 
+                                                                               prima_servicios, 
+                                                                               edad_pet, 
+                                                                               P5140, 
+                                                                               tasa_inactivos, 
+                                                                               remesas_internas, 
+                                                                               ayuda_instituciones, 
+                                                                               P5000, 
+                                                                               Educ_jefe, 
+                                                                               ingresos_trabajo, 
+                                                                               DominioRURAL)))
+
+descriptive_statistics <- stargazer(train_sin_bog_descriptivas,
+                                    type = "latex", min.max = TRUE, mean.sd = TRUE,
+                                    nobs = TRUE, median = TRUE, iqr = FALSE,
+                                    digits = 1, align = T,
+                                    title = "Summary Statistics for the 20 Most Important Predictors, Final Training Sample",
+                                    covariate.labels = c("Tasa cotizantes a pensión", 
+                                                         "Estimación Arriendo Vivienda", 
+                                                         "Tasa pers. en edad de trabajar", 
+                                                         "Número personas unidad de gasto", 
+                                                         "Promedio nivel educativo hogar", 
+                                                         "Tasa Personas Ocupadas", 
+                                                         "Tamaño empresa empleadora más grande del hogar", 
+                                                         "Presencia pensionados",
+                                                         "Horas trabajadas",
+                                                         "Presencia ingresos prima servicios",
+                                                         "Promedio Personas en edad de trabajar",
+                                                         "Arriendo mensual",
+                                                         "Tasa personas inactivas",
+                                                         "Remesas Internas",
+                                                         "Ayuda Instituciones ",
+                                                         "Cuartos Totales Vivienda",
+                                                         "Nivel educativo jefe de hogar",
+                                                         "Ingresos Trabajo Principal",
+                                                         "Hogar en Ruralidad"
+                                                         )
+)
+
+#Scatterplots varios
+
+graph_ingreso_estimacion_arriendo <- ggplot(data = train_sin_bog, aes(x=lIngpcug, y=P5130)) + 
+  geom_point() + labs(x = "log Ingresos per Cápita Unidad de Gasto", y = "Estimación valor arriendo vivienda")
+
+graph_count_propiedad_vivienda <- ggplot(data = train_sin_bog, aes(x=P5090)) + 
+  stat_count(width = 1) + 
+  labs(x = "Propiedad de la vivienda", y = "Número de hogares") + 
+  scale_x_discrete(limit = c("1", "2", "3", "4", "5"), labels = c("Propia, pagada", "Propia, pagando","Arriendo/subarriendo","Usufructo", "Propia, sin título"))
+
 
 #Seleccion basada en Lasso
 coefs_lasso <- read_csv("../stores/coefs_lasso.csv")
