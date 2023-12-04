@@ -13,7 +13,7 @@ En este repositorio se encuentran múltiples modelos para predecir los precios d
 ### stores
 
 Las bases de datos raw utilizadas se encuentran en: https://uniandes-my.sharepoint.com/:f:/g/personal/s_herrerag_uniandes_edu_co/EkeqdVLsemtOr0oi78eGyyQBL0kS-2qiCQiTBbUQqKi4ug?e=EDadov
--Están las bases después de la limpieza y la unión.
+- Están las bases después de la limpieza y la unión.
 
 ### submissions
 
